@@ -59,7 +59,11 @@ app.post('/api/contact', (req, res) => {
     }
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`SSA Command Center Backend running on http://localhost:${PORT}`);
-});
+// Start the server (only if not running on Vercel)
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`SSA Command Center Backend running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
