@@ -12,12 +12,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the root directory
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '..')));
 
 // Database file path (Vercel has a read-only filesystem, use /tmp for serverless writes)
 const dbPath = process.env.VERCEL 
     ? path.join('/tmp', 'messages.json') 
-    : path.join(__dirname, 'messages.json');
+    : path.join(__dirname, '..', 'messages.json');
 
 // Ensure the messages file exists safely
 try {
