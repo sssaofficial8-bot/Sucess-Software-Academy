@@ -1,39 +1,43 @@
-const express = require('express');
-const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+module.exports = (req, res) => {
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname, '..')));
-
-// Database file path (Vercel has a read-only filesystem, use /tmp for serverless writes)
-const dbPath = process.env.VERCEL 
-    ? path.join('/tmp', 'messages.json') 
-    : path.join(__dirname, '..', 'messages.json');
-
-// Ensure the messages file exists safely
-try {
-    if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify([]));
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
     }
-} catch (error) {
-    console.error('Error initializing database file:', error);
-}
 
-// API Route for Contact Form Submission
-app.post('/api/contact', (req, res) => {
-    const { name, phone, course, message } = req.body;
+    if (req.method !== 'POST') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+        return;
+    }
+
+    const { name, phone, course, message } = req.body || {};
 
     if (!name || !phone) {
-        return res.status(400).json({ error: 'Name and Phone are required fields.' });
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Name and Phone are required fields.' }));
+        return;
+    }
+
+    const dbPath = process.env.VERCEL 
+        ? path.join('/tmp', 'messages.json') 
+        : path.join(__dirname, '..', 'messages.json');
+
+    // Ensure database file exists safely
+    try {
+        if (!fs.existsSync(dbPath)) {
+            fs.writeFileSync(dbPath, JSON.stringify([]));
+        }
+    } catch (err) {
+        console.error('Error creating database file:', err);
     }
 
     const newMessage = {
@@ -52,18 +56,11 @@ app.post('/api/contact', (req, res) => {
         fs.writeFileSync(dbPath, JSON.stringify(messages, null, 2));
 
         console.log(`[New Transmission] From: ${name}, Course: ${course}`);
-        res.status(200).json({ success: true, message: 'Transmission received.' });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Transmission received.' }));
     } catch (error) {
         console.error('Error saving message:', error);
-        res.status(500).json({ error: 'Internal server error.' });
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error.' }));
     }
-});
-
-// Start the server (only if not running on Vercel)
-if (!process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log(`SSA Command Center Backend running on http://localhost:${PORT}`);
-    });
-}
-
-module.exports = app;
+};

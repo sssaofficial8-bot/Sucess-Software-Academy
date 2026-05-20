@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Backend for Success Software Academy",
   "scripts": {
-    "start": "node api/contact.js"
+    "start": "node local-server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
