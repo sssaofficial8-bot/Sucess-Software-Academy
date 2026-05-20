@@ -399,6 +399,7 @@ section { position: relative; padding: 140px 5%; overflow: hidden; }
 
 @media (max-width: 768px) {
   .course-card { cursor: pointer; }
+  .course-enroll { opacity: 1; transform: translateY(0); }
 }
 
 .course-card::before { content: ""; position: absolute; inset: -1px; border-radius: 16px; padding: 1px; background: linear-gradient(120deg,transparent,var(--gold-hot),transparent); mask: linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 0px) content-box exclude, linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 0px); opacity: 0; transition: opacity 0.4s; }

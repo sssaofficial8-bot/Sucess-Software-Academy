@@ -5,25 +5,46 @@ const initPreloader = () => {
     const canvas = document.getElementById('preloader-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const w = canvas.width; const h = canvas.height;
+    
+    // Set the canvas internal width and height to match the viewport dimensions
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const w = canvas.width;
+    const h = canvas.height;
+    
     let particles = [];
     
-    ctx.font = '800 80px "Bricolage Grotesque"';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('SSA', w/2, h/2);
+    // Use an offscreen canvas to render text at 300x150, keeping it sharp and scalable
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 300;
+    offscreen.height = 150;
+    const oCtx = offscreen.getContext('2d');
     
-    const data = ctx.getImageData(0, 0, w, h).data;
-    ctx.clearRect(0, 0, w, h);
+    oCtx.font = '800 80px "Bricolage Grotesque"';
+    oCtx.fillStyle = 'white';
+    oCtx.textAlign = 'center';
+    oCtx.textBaseline = 'middle';
+    oCtx.fillText('SSA', 150, 75);
     
-    for(let y = 0; y < h; y += 4) {
-        for(let x = 0; x < w; x += 4) {
-            if(data[(y*w+x)*4+3] > 128) {
+    const data = oCtx.getImageData(0, 0, 300, 150).data;
+    
+    // Scale factor: larger on desktop (e.g. 2.0x), and scalable on mobile based on viewport width
+    const scale = isMobile ? Math.max(1.0, w / 350) : 2.0;
+    
+    for(let y = 0; y < 150; y += 4) {
+        for(let x = 0; x < 300; x += 4) {
+            if(data[(y*300+x)*4+3] > 128) {
+                // Calculate centered target coordinates relative to the full-screen canvas
+                const tx = w / 2 + (x - 150) * scale;
+                const ty = h / 2 + (y - 75) * scale;
+                
                 particles.push({
-                    x: Math.random()*w, y: Math.random()*h,
-                    tx: x, ty: y,
-                    vx: 0, vy: 0
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    tx: tx,
+                    ty: ty,
+                    vx: 0,
+                    vy: 0
                 });
             }
         }
@@ -36,7 +57,7 @@ const initPreloader = () => {
         particles.forEach(p => {
             p.x += (p.tx - p.x) * 0.1;
             p.y += (p.ty - p.y) * 0.1;
-            ctx.fillRect(p.x, p.y, 2, 2);
+            ctx.fillRect(p.x, p.y, 2 * scale, 2 * scale);
         });
         frame++;
         if(frame < 120) requestAnimationFrame(draw);
@@ -434,15 +455,23 @@ const initReviewsSlider = () => {
 // 8. COURSE CLICK SELECTOR Helper
 const initCourseSelector = () => {
     document.querySelectorAll('.course-card').forEach(card => {
-        const enrollBtn = card.querySelector('.course-enroll');
         const courseNameEl = card.querySelector('.course-name');
-        if (enrollBtn && courseNameEl) {
+        if (courseNameEl) {
             const name = courseNameEl.innerText.trim();
-            enrollBtn.addEventListener('click', (e) => {
+            card.addEventListener('click', (e) => {
+                // Prevent default anchor jumping behavior if clicking the link
+                e.preventDefault();
+                
                 const select = document.getElementById('cCourse');
                 if (select) {
                     select.value = name;
                     select.classList.add('has-value');
+                }
+                
+                // Perform a premium smooth scroll to the contact form section
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         }
