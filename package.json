@@ -2,9 +2,9 @@
   "name": "ssa-website-backend",
   "version": "1.0.0",
   "description": "Backend for Success Software Academy",
-  "main": "api/server.js",
+  "main": "api/contact.js",
   "scripts": {
-    "start": "node api/server.js"
+    "start": "node api/contact.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
