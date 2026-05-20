@@ -14,12 +14,18 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the root directory
 app.use(express.static(__dirname));
 
-// Database file path
-const dbPath = path.join(__dirname, 'messages.json');
+// Database file path (Vercel has a read-only filesystem, use /tmp for serverless writes)
+const dbPath = process.env.VERCEL 
+    ? path.join('/tmp', 'messages.json') 
+    : path.join(__dirname, 'messages.json');
 
-// Ensure the messages file exists
-if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify([]));
+// Ensure the messages file exists safely
+try {
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify([]));
+    }
+} catch (error) {
+    console.error('Error initializing database file:', error);
 }
 
 // API Route for Contact Form Submission
